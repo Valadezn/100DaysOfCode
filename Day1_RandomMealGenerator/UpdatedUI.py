@@ -15,6 +15,7 @@ from PyQt5 import QtWebEngineCore
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
 from recipeClass import Recipe
+from pip._internal.utils.outdated import SELFCHECK_DATE_FMT
 
 
 
@@ -29,13 +30,19 @@ class Ui_MainWindow(object):
         self.random_recipe_button.setGeometry(QtCore.QRect(290, 10, 181, 51))
         self.random_recipe_button.setObjectName("random_recipe_button")
         self.left_group_box = QtWidgets.QGroupBox(self.centralwidget)
-        self.left_group_box.setGeometry(QtCore.QRect(10, 60, 361, 501))
+        self.left_group_box.setGeometry(QtCore.QRect(10, 55, 360, 500))
         self.left_group_box.setObjectName("left_group_box")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.left_group_box)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.recipe_image = QtWidgets.QLabel(self.left_group_box)
-        self.recipe_image.setText("")
+        
+#         self.recipe_image = QtWidgets.QLabel(self.left_group_box)
+#         self.recipe_image.setText("")
+#         self.recipe_image.setObjectName("recipe_image")
+        
+        self.recipe_image = QtWebEngineWidgets.QWebEngineView()
         self.recipe_image.setObjectName("recipe_image")
+        
+        
         self.verticalLayout.addWidget(self.recipe_image)
         self.recipe_name_label = QtWidgets.QLabel(self.left_group_box)
         self.recipe_name_label.setObjectName("recipe_name_label")
@@ -94,20 +101,28 @@ class Ui_MainWindow(object):
         self.instructions_label.setText(self.new_recipe.get_instructions())
         
         # Set up YT video
-        # TODO: edit youtube url to only get the 11 characters from the end of th eyoutube url
-        s = """<iframe width="560" height="315" src="https://www.youtube.com/embed/L0MK7qz13bU?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>""".format(self.new_recipe.get_yt_url()[])
-        print(s)
+        yt_vid_url = self.new_recipe.get_yt_url()
+        s = """<iframe width="300" height="300" src="https://www.youtube.com/embed/{}?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>""".format(yt_vid_url[len(yt_vid_url)-11:])
         base_url = "local"
         self.yt_viewer.setHtml(s, QUrl(base_url))
         
         # Set recipe thumbnail
-        self.recipe_image.setPixmap(QtGui.QPixmap(self.new_recipe.get_thumbnail()))
+        self.recipe_image.load(QtCore.QUrl(self.new_recipe.get_thumbnail()))
+        #self.recipe_image.setPixmap(QtGui.QPixmap(self.new_recipe.get_thumbnail()))
         
+        self.recipe_image.adjustSize()
         self.recipe_name_label.adjustSize()
         self.category_label.adjustSize()
         self.instructions_label.adjustSize()
+        self.yt_viewer.adjustSize()
 
-
+        ingredients = ""
+        ingredients_list = self.new_recipe.get_ingredients_list()
+        measures_list = self.new_recipe.get_measures_list()
+        for i in range(len(ingredients_list)):
+            ingredients += measures_list[i] + " " + ingredients_list[i] + "\n"
+        
+        self.ingredients_label.setText(ingredients)
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
